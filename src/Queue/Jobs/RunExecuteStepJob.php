@@ -1,0 +1,42 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Alama\Arazzo\Laravel\Queue\Jobs;
+
+use Alama\Arazzo\Runner\AsyncRunner;
+use Alama\Arazzo\Runner\Data\ExecuteStepJob;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+
+/**
+ * @internal stays out of the advertised contract; not part of the public API surface
+ */
+class RunExecuteStepJob implements ShouldQueue
+{
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
+
+    public string $definitionId;
+
+    public ?string $workflowId;
+
+    public ?string $executionId;
+
+    public function __construct(public ExecuteStepJob $inner)
+    {
+        $this->definitionId = $this->inner->context->getDefinitionId();
+        $this->workflowId = $this->inner->context->getWorkflowId();
+        $this->executionId = $this->inner->context->getExecutionId();
+    }
+
+    public function handle(AsyncRunner $runner): void
+    {
+        $runner->handleStep($this->inner);
+    }
+}
