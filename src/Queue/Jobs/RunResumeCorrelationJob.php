@@ -21,6 +21,9 @@ class RunResumeCorrelationJob implements ShouldQueue
     use Queueable;
     use SerializesModels;
 
+    /**
+     * @param  array<string, mixed>  $response
+     */
     public function __construct(
         public string $correlationId,
         public array $response,

@@ -35,7 +35,7 @@ class RedisHotStateStore implements StateStoreInterface
     public function load(string $executionId): ?array
     {
         $data = $this->redis->connection()->get($this->prefix.$executionId);
-        if (!is_string($data) || $data === '') {
+        if (! is_string($data) || $data === '') {
             return null;
         }
 

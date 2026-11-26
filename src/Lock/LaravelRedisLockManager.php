@@ -25,7 +25,7 @@ class LaravelRedisLockManager implements LockManagerInterface
     {
         $lock = Cache::lock($key, $ttlSeconds);
 
-        if (!$lock->get()) {
+        if (! $lock->get()) {
             return false;
         }
 

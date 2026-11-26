@@ -6,8 +6,8 @@ namespace Alama\Arazzo\Laravel\Http\Controllers;
 
 use Alama\Arazzo\Contracts\Interfaces\PendingCorrelationRegistryInterface;
 use Alama\Arazzo\Contracts\Interfaces\QueueDriverInterface;
+use Alama\Arazzo\Laravel\Queue\Jobs\RunResumeCorrelationJob;
 use Alama\Arazzo\Laravel\Support\Payload;
-use Alama\Arazzo\Runner\Async\ResumeCorrelationJob;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -29,7 +29,7 @@ class WebhookResumeController extends Controller
         }
 
         $payload = Payload::record($request->json()->all());
-        $queueDriver->dispatch(new ResumeCorrelationJob($correlationId, $payload));
+        $queueDriver->dispatch(new RunResumeCorrelationJob($correlationId, $payload));
 
         return response()->json([], 202);
     }

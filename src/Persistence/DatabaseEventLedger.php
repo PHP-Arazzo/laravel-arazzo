@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Alama\Arazzo\Laravel\Persistence;
 
-use Alama\Arazzo\Events\Interfaces\EventLedgerInterface;
 use Illuminate\Database\ConnectionInterface;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -12,7 +11,7 @@ use Throwable;
 /**
  * @internal stays out of the advertised contract; not part of the public API surface
  */
-class DatabaseEventLedger implements EventLedgerInterface
+class DatabaseEventLedger
 {
     public function __construct(
         private ConnectionInterface $db,

@@ -37,7 +37,7 @@ class DatabasePendingCorrelationRegistry implements PendingCorrelationRegistryIn
             ->where('correlation_id', $correlationId)
             ->first();
 
-        if (!$row) {
+        if (! $row) {
             return null;
         }
 
@@ -58,7 +58,7 @@ class DatabasePendingCorrelationRegistry implements PendingCorrelationRegistryIn
      */
     private static function textColumn(mixed $value, string $column): string
     {
-        if (!is_scalar($value)) {
+        if (! is_scalar($value)) {
             throw new UnexpectedValueException("Pending correlation column '{$column}' is not a scalar, got ".get_debug_type($value).'.');
         }
 
