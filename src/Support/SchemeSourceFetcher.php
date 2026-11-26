@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Alama\Arazzo\Laravel\Support;
 
-use Alama\Arazzo\Sources\Resolver\Exceptions\SourceFetchException;
+use Alama\Arazzo\Sources\Exceptions\SourceFetchException;
 use Alama\Arazzo\Sources\Resolver\Fetchers\HttpFetcher;
 use Alama\Arazzo\Sources\Resolver\Fetchers\LocalFetcher;
 use Alama\Arazzo\Sources\Resolver\Interfaces\SourceFetcher;
@@ -39,7 +39,7 @@ final class SchemeSourceFetcher implements SourceFetcher
         );
 
         return new self([
-            'file' => new LocalFetcher(),
+            'file' => new LocalFetcher,
             'http' => $http(),
             'https' => $http(),
         ]);
@@ -48,7 +48,7 @@ final class SchemeSourceFetcher implements SourceFetcher
     public function fetch(string $urlOrPath, string $basePath): string
     {
         $scheme = parse_url($urlOrPath, PHP_URL_SCHEME);
-        if (!is_string($scheme) || $scheme === '') {
+        if (! is_string($scheme) || $scheme === '') {
             $scheme = 'file';
         }
 

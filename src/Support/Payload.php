@@ -18,7 +18,7 @@ final class Payload
      */
     public static function record(mixed $value): array
     {
-        if (!is_array($value)) {
+        if (! is_array($value)) {
             return [];
         }
 
@@ -34,7 +34,7 @@ final class Payload
     public static function records(mixed $container, string $key): array
     {
         $items = self::record($container)[$key] ?? null;
-        if (!is_array($items)) {
+        if (! is_array($items)) {
             return [];
         }
 

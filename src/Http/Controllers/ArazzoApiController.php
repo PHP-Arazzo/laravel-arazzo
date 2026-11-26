@@ -21,7 +21,7 @@ class ArazzoApiController extends Controller
     public function endpoints(Request $request, SourceResolver $resolver): JsonResponse
     {
         $specPath = $request->query('spec');
-        if (!$specPath) {
+        if (! $specPath) {
             return response()->json(['error' => 'spec parameter is required'], 400);
         }
 
@@ -71,22 +71,22 @@ class ArazzoApiController extends Controller
             $trace .= "- Node {$id}: Execute {$method} {$path} (Operation: {$operationId}).\n";
 
             $parameters = $data['parameters'] ?? null;
-            if (!empty($parameters)) {
+            if (! empty($parameters)) {
                 $trace .= '  - Parameters: '.str_replace("\n", ' ', Payload::text($parameters))."\n";
             }
 
             $requestBody = $data['requestBody'] ?? null;
-            if (!empty($requestBody)) {
+            if (! empty($requestBody)) {
                 $trace .= '  - Request Body: '.str_replace("\n", ' ', Payload::text($requestBody))."\n";
             }
 
             $criteria = $data['criteria'] ?? null;
-            if (!empty($criteria)) {
+            if (! empty($criteria)) {
                 $trace .= '  - Success Criteria: '.str_replace("\n", ' ', Payload::text($criteria))."\n";
             }
 
             $outputs = $data['outputs'] ?? null;
-            if (!empty($outputs)) {
+            if (! empty($outputs)) {
                 $trace .= '  - Outputs: '.str_replace("\n", ' ', Payload::text($outputs))."\n";
             }
         }
