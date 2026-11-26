@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# Pre-commit checks for alama/laravel-arazzo
+# Mirrors CI gates: pint --test, phpstan, pest.
+# Skip with `git commit --no-verify` if you truly need to.
+set -euo pipefail
+
+echo "========================================"
+echo "    Running Pre-Commit Checks..."
+echo "========================================"
+
+PROJECT_ROOT=$(git rev-parse --show-toplevel)
+cd "$PROJECT_ROOT"
+
+echo ""
+echo "1. Checking Code Style (Pint)..."
+if ! vendor/bin/pint --test -v; then
+    echo "========================================"
+    echo "❌ Code style check failed!"
+    echo "💡 Fix it by running: make format"
+    echo "========================================"
+    exit 1
+fi
+echo "✅ Code Style passed."
+echo ""
+
+echo "2. Running Static Analysis (PHPStan)..."
+if ! vendor/bin/phpstan analyse -c phpstan.neon.dist --memory-limit=1G; then
+    echo "========================================"
+    echo "❌ Static analysis failed!"
+    echo "💡 Fix the PHPStan errors shown above."
+    echo "========================================"
+    exit 1
+fi
+echo "✅ Static Analysis passed."
+echo ""
+
+echo "3. Running Tests (Pest)..."
+if ! vendor/bin/pest; then
+    echo "========================================"
+    echo "❌ Tests failed!"
+    echo "💡 Fix the failing tests shown above."
+    echo "========================================"
+    exit 1
+fi
+echo "✅ Tests passed."
+echo ""
+
+echo "🎉 All checks passed! Committing..."

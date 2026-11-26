@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<phpmd-baseline>
+  <violation rule="PHPMD\Rule\Design\CouplingBetweenObjects" file="src/Bindings/PersistenceBindings.php"/>
+  <violation rule="PHPMD\Rule\UnusedFormalParameter" file="src/Persistence/DatabaseDefinitionStore.php"/>
+  <violation rule="PHPMD\Rule\Naming\LongVariable" file="src/Persistence/DatabaseExecutionStore.php"/>
+  <violation rule="PHPMD\Rule\Design\CouplingBetweenObjects" file="src/ProtocolHttpServiceProvider.php"/>
+</phpmd-baseline>
