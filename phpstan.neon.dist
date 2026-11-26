@@ -1,7 +1,7 @@
 includes:
-    - ../../vendor/larastan/larastan/extension.neon
-    - ../../vendor/phpstan/phpstan-deprecation-rules/rules.neon
-    - ../../vendor/phpstan/phpstan-phpunit/extension.neon
+    - vendor/larastan/larastan/extension.neon
+    - vendor/phpstan/phpstan-deprecation-rules/rules.neon
+    - vendor/phpstan/phpstan-phpunit/extension.neon
     - phpstan-baseline.neon
 parameters:
     level: max
@@ -10,18 +10,16 @@ parameters:
     excludePaths:
         - tests
     scanDirectories:
-        - ../../packages/core/src
-        - ../../packages/contracts/src
-        - ../../packages/expression/src
-        - ../../packages/document/src
-        - ../../packages/evaluation/src
-        - ../../packages/runner/src
-        - ../../packages/runtime/src
-        - ../../packages/engine/src
-        - ../../packages/events/src
-        - ../../packages/cli/src
-        - ../../packages/sources/src
-        - ../../packages/protocol-http/src
-        - ../../packages/protocol-soap/src
-        - ../../packages/protocol-rpc/src
+        - vendor/php-arazzo/arazzo-core/src
+        - vendor/php-arazzo/arazzo-contracts/src
+        - vendor/php-arazzo/arazzo-expression/src
+        - vendor/php-arazzo/arazzo-document/src
+        - vendor/php-arazzo/arazzo-evaluation/src
+        - vendor/php-arazzo/arazzo-runner/src
+        - vendor/php-arazzo/arazzo-engine/src
+        - vendor/php-arazzo/arazzo-cli/src
+        - vendor/php-arazzo/arazzo-sources/src
+        - vendor/php-arazzo/arazzo-protocol-http/src
+        - vendor/php-arazzo/arazzo-protocol-soap/src
+        - vendor/php-arazzo/arazzo-protocol-rpc/src
     reportUnmatchedIgnoredErrors: true

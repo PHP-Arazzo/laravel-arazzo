@@ -12,13 +12,11 @@
         {"type": "path", "url": "../document"},
         {"type": "path", "url": "../engine"},
         {"type": "path", "url": "../evaluation"},
-        {"type": "path", "url": "../events"},
         {"type": "path", "url": "../expression"},
         {"type": "path", "url": "../protocol-http"},
         {"type": "path", "url": "../protocol-rpc"},
         {"type": "path", "url": "../protocol-soap"},
         {"type": "path", "url": "../runner"},
-        {"type": "path", "url": "../runtime"},
         {"type": "path", "url": "../sources"}
     ],
     "authors": [
@@ -31,30 +29,29 @@
         "php-arazzo/arazzo-contracts": "@dev",
         "php-arazzo/arazzo-document": "@dev",
         "php-arazzo/arazzo-evaluation": "@dev",
-        "php-arazzo/arazzo-events": "@dev",
         "php-arazzo/arazzo-expression": "@dev",
         "php-arazzo/arazzo-protocol-http": "@dev",
         "php-arazzo/arazzo-protocol-rpc": "@dev",
         "php-arazzo/arazzo-protocol-soap": "@dev",
         "php-arazzo/arazzo-runner": "@dev",
-        "php-arazzo/arazzo-runtime": "@dev",
         "php-arazzo/arazzo-sources": "@dev",
         "guzzlehttp/guzzle": "^7.8||^8.0",
         "illuminate/contracts": "^11.0||^12.0||^13.0",
         "spatie/laravel-package-tools": "^1.16"
     },
     "require-dev": {
+        "larastan/larastan": "^3.0",
+        "laravel/pint": "^1.14",
+        "nunomaduro/collision": "^8.8",
         "orchestra/testbench": "^11.0.0||^10.0.0||^9.0.0",
         "pestphp/pest": "^5.0",
-        "pestphp/pest-plugin-laravel": "^5.0",
         "pestphp/pest-plugin-arch": "^5.0",
-        "larastan/larastan": "^3.0",
+        "pestphp/pest-plugin-laravel": "^5.0",
+        "phpmd/phpmd": "^3.0",
         "phpstan/phpstan": "^2.0",
         "phpstan/phpstan-deprecation-rules": "^2.0",
         "phpstan/phpstan-phpunit": "^2.0",
-        "nunomaduro/collision": "^8.8",
-        "spatie/laravel-ray": "^1.35",
-        "laravel/pint": "^1.14"
+        "spatie/laravel-ray": "^1.35"
     },
     "autoload": {
         "psr-4": {"Alama\\Arazzo\\Laravel\\": "src/"}
