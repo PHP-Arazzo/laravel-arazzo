@@ -10,11 +10,9 @@ use Alama\Arazzo\Laravel\Bindings\FacadeBindings;
 use Alama\Arazzo\Laravel\Bindings\GeneratorBindings;
 use Alama\Arazzo\Laravel\Bindings\HttpBindings;
 use Alama\Arazzo\Laravel\Bindings\PersistenceBindings;
-use Alama\Arazzo\Laravel\Bindings\ResolverBindings;
 use Alama\Arazzo\Laravel\Http\Controllers\ArazzoApiController;
 use Alama\Arazzo\Laravel\Http\Controllers\WebhookResumeController;
 use Alama\Arazzo\Laravel\Support\ConfigValue;
-use Illuminate\Foundation\AliasLoader;
 use Illuminate\Support\Facades\Route;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -23,23 +21,6 @@ final class LaravelArazzoServiceProvider extends PackageServiceProvider
 {
     public function register(): void
     {
-        static $aliasesRegistered = false;
-        if (!$aliasesRegistered) {
-            // Always use class_alias for backward compatibility
-            class_alias(self::class, 'Alama\LaravelArazzo\LaravelArazzoServiceProvider');
-            class_alias(ArazzoApiController::class, 'Alama\LaravelArazzo\Http\Controllers\ArazzoApiController');
-            class_alias(WebhookResumeController::class, 'Alama\LaravelArazzo\Laravel\Http\Controllers\WebhookResumeController');
-
-            // Also register with AliasLoader if available
-            if (class_exists(AliasLoader::class)) {
-                $loader = AliasLoader::getInstance();
-                $loader->alias('Alama\LaravelArazzo\LaravelArazzoServiceProvider', self::class);
-                $loader->alias('Alama\LaravelArazzo\Http\Controllers\ArazzoApiController', ArazzoApiController::class);
-                $loader->alias('Alama\LaravelArazzo\Laravel\Http\Controllers\WebhookResumeController', WebhookResumeController::class);
-            }
-            $aliasesRegistered = true;
-        }
-
         parent::register();
     }
 
@@ -65,7 +46,6 @@ final class LaravelArazzoServiceProvider extends PackageServiceProvider
         HttpBindings::register($this->app);
         EventBindings::register($this->app);
         PersistenceBindings::register($this->app);
-        ResolverBindings::register($this->app);
         GeneratorBindings::register($this->app);
         ExecutionBindings::register($this->app);
         FacadeBindings::register($this->app);
