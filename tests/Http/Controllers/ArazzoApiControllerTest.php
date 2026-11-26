@@ -39,6 +39,15 @@ it('returns endpoints list from openapi spec', function () {
         ]);
 });
 
+it('returns 400 when spec parameter is missing', function () {
+    $resolver = Mockery::mock(SourceResolver::class);
+    $this->app->instance(SourceResolver::class, $resolver);
+
+    getJson('/api/arazzo/endpoints')
+        ->assertStatus(400)
+        ->assertJson(['error' => 'spec parameter is required']);
+});
+
 it('generates yaml from graph', function () {
     $generator = Mockery::mock(ArazzoGenerator::class);
     $generator->shouldReceive('generate')->once()->andReturn('generated_yaml');
@@ -77,6 +86,8 @@ it('shapes a graph into a natural language trace', function () {
                         'operationId' => 'listRides',
                         'parameters' => "page\nsize",
                         'criteria' => 'status == 200',
+                        'requestBody' => '{"key": "value"}',
+                        'outputs' => '{"result": "ok"}',
                     ],
                 ],
             ],
@@ -92,7 +103,9 @@ it('shapes a graph into a natural language trace', function () {
         "Workflow Graph Intent:\n"
         ."- Node n1: Execute GET /rides (Operation: listRides).\n"
         ."  - Parameters: page size\n"
+        ."  - Request Body: {\"key\": \"value\"}\n"
         ."  - Success Criteria: status == 200\n"
+        ."  - Outputs: {\"result\": \"ok\"}\n"
         ."- Edge: Output of Node n1 flows to Node n2.\n",
     );
 });

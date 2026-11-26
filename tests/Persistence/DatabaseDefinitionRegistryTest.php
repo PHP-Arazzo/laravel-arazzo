@@ -5,12 +5,17 @@ declare(strict_types=1);
 namespace Alama\Arazzo\Laravel\Tests\Persistence;
 
 use Alama\Arazzo\Contracts\Spec\ArazzoDocument;
+use Alama\Arazzo\Contracts\Spec\Components;
 use Alama\Arazzo\Contracts\Spec\Enum\Format;
+use Alama\Arazzo\Contracts\Spec\Info;
 use Alama\Arazzo\Contracts\Spec\RawDocument;
 use Alama\Arazzo\Document\Parser\Parser;
 use Alama\Arazzo\Laravel\Persistence\DatabaseDefinitionRegistry;
+use Alama\Arazzo\Laravel\Support\Config;
 use Alama\Arazzo\Runtime\State\Exceptions\DefinitionHydrationException;
 use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
+use ReflectionMethod;
 
 function definitionRawRoot(string $title = 'Test Doc'): array
 {
@@ -31,11 +36,11 @@ function definitionRawRoot(string $title = 'Test Doc'): array
 
 function definitionDocumentFor(array $rawRoot): ArazzoDocument
 {
-    return (new Parser())->parse(new RawDocument($rawRoot, 'memory://test', Format::Json));
+    return (new Parser)->parse(new RawDocument($rawRoot, 'memory://test', Format::Json));
 }
 
 it('registers and retrieves a document', function (): void {
-    $registry = new DatabaseDefinitionRegistry(DB::connection(), new Parser());
+    $registry = new DatabaseDefinitionRegistry(DB::connection(), new Parser, new Config);
     $document = definitionDocumentFor(definitionRawRoot());
 
     $id = $registry->register($document);
@@ -43,11 +48,11 @@ it('registers and retrieves a document', function (): void {
 
     expect($fetched)->not->toBeNull();
     expect($fetched->info->title)->toBe('Test Doc');
-    expect($fetched->workflows[0]->workflowId)->toBe('wf_1');
+    expect($fetched->workflows->firstWorkflow()->workflowId)->toBe('wf_1');
 });
 
 it('returns the same id when registering identical content twice', function (): void {
-    $registry = new DatabaseDefinitionRegistry(DB::connection(), new Parser());
+    $registry = new DatabaseDefinitionRegistry(DB::connection(), new Parser, new Config);
     $document = definitionDocumentFor(definitionRawRoot());
 
     $id1 = $registry->register($document);
@@ -58,7 +63,7 @@ it('returns the same id when registering identical content twice', function (): 
 });
 
 it('produces different ids for different content', function (): void {
-    $registry = new DatabaseDefinitionRegistry(DB::connection(), new Parser());
+    $registry = new DatabaseDefinitionRegistry(DB::connection(), new Parser, new Config);
 
     $id1 = $registry->register(definitionDocumentFor(definitionRawRoot('Doc A')));
     $id2 = $registry->register(definitionDocumentFor(definitionRawRoot('Doc B')));
@@ -67,7 +72,7 @@ it('produces different ids for different content', function (): void {
 });
 
 it('returns null from get() for an unknown id', function (): void {
-    $registry = new DatabaseDefinitionRegistry(DB::connection(), new Parser());
+    $registry = new DatabaseDefinitionRegistry(DB::connection(), new Parser, new Config);
 
     expect($registry->get('01ARZ3NDEKTSV4RRFFQ69G5FAV'))->toBeNull();
 });
@@ -81,7 +86,7 @@ it('throws a hydration exception on unparseable JSON', function (): void {
         'created_at' => now(),
     ]);
 
-    $registry = new DatabaseDefinitionRegistry(DB::connection(), new Parser());
+    $registry = new DatabaseDefinitionRegistry(DB::connection(), new Parser, new Config);
 
     expect(fn () => $registry->get('01ARZ3NDEKTSV4RRFFQ69G5FAV'))
         ->toThrow(DefinitionHydrationException::class);
@@ -97,8 +102,33 @@ it('throws a hydration exception when content no longer validates', function ():
         'created_at' => now(),
     ]);
 
-    $registry = new DatabaseDefinitionRegistry(DB::connection(), new Parser());
+    $registry = new DatabaseDefinitionRegistry(DB::connection(), new Parser, new Config);
 
     expect(fn () => $registry->get('01ARZ3NDEKTSV4RRFFQ69G5FAV'))
+        ->toThrow(DefinitionHydrationException::class);
+});
+
+it('register throws InvalidArgumentException when document has no rawRoot', function (): void {
+    $registry = new DatabaseDefinitionRegistry(DB::connection(), new Parser, new Config);
+    $document = new ArazzoDocument(
+        '1.0.0',
+        new Info('Test', null, null, '1'),
+        [],
+        [],
+        new Components([], [], [], []),
+        [],
+        null,
+    );
+
+    expect(fn () => $registry->register($document))
+        ->toThrow(InvalidArgumentException::class);
+});
+
+it('textColumn throws DefinitionHydrationException for non-scalar value', function (): void {
+    $registry = new DatabaseDefinitionRegistry(DB::connection(), new Parser, new Config);
+    $method = new ReflectionMethod($registry, 'textColumn');
+    $method->setAccessible(true);
+
+    expect(fn () => $method->invoke($registry, ['not', 'a', 'scalar']))
         ->toThrow(DefinitionHydrationException::class);
 });

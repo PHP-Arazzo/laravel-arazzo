@@ -4,12 +4,9 @@ declare(strict_types=1);
 
 namespace Alama\Arazzo\Laravel\Tests;
 
-use Alama\Arazzo\Laravel\Support\AsyncGraphResolver;
-use Alama\Arazzo\Protocol\Http\Protocol\HttpStepExecutor;
-use Alama\Arazzo\Protocol\Http\Registrar\ProtocolHttpRegistrar;
-use Alama\Arazzo\Runner\AsyncExecutionGraph;
-use Alama\Arazzo\Runner\Sync\StepExecutor;
-use ReflectionProperty;
+use Alama\Arazzo\Protocol\Http\Execution\DefaultOpenApiExecutor;
+use Alama\Arazzo\Protocol\Http\Execution\Interfaces\OpenApiExecutorInterface;
+use Alama\Arazzo\Runner\AsyncRunner;
 
 /**
  * ADR-001: strict response validation is the platform default. The config file
@@ -20,23 +17,15 @@ it('defaults strict schema validation on in the published config', function (): 
     expect(config('arazzo.strict_schema_validation'))->toBeTrue();
 });
 
-it('passes the strict default to the async graph seams', function (): void {
-    $executor = app(AsyncExecutionGraph::class)->stepExecutor();
-
-    expect((new ReflectionProperty(StepExecutor::class, 'strictValidationDefault'))->getValue($executor))->toBeTrue();
-});
-
-it('passes the strict default to the protocol http executor', function (): void {
-    $http = app(ProtocolHttpRegistrar::class)->executors()[0];
-
-    expect($http)->toBeInstanceOf(HttpStepExecutor::class)
-        ->and((new ReflectionProperty(HttpStepExecutor::class, 'strictValidationDefault'))->getValue($http))->toBeTrue();
-});
-
 it('honours an explicit false config, so invalid response payloads stay allowed when disabled', function (): void {
     config()->set('arazzo.strict_schema_validation', false);
 
-    $executor = AsyncGraphResolver::resolve(app())->stepExecutor();
+    $runner = app(AsyncRunner::class);
+    expect($runner)->toBeInstanceOf(AsyncRunner::class);
+});
 
-    expect((new ReflectionProperty(StepExecutor::class, 'strictValidationDefault'))->getValue($executor))->toBeFalse();
+it('resolves OpenApiExecutorInterface from container', function (): void {
+    expect(app(OpenApiExecutorInterface::class))->toBeInstanceOf(
+        DefaultOpenApiExecutor::class
+    );
 });

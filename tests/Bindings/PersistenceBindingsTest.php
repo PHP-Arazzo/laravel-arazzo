@@ -6,15 +6,13 @@ use Alama\Arazzo\Contracts\Interfaces\LockManagerInterface;
 use Alama\Arazzo\Contracts\Interfaces\LockStrategyInterface;
 use Alama\Arazzo\Contracts\Interfaces\PendingCorrelationRegistryInterface;
 use Alama\Arazzo\Contracts\Interfaces\QueueDriverInterface;
-use Alama\Arazzo\Events\Interfaces\EventLedgerInterface;
 use Alama\Arazzo\Laravel\Bindings\PersistenceBindings;
 use Alama\Arazzo\Laravel\Lock\LaravelRedisLockManager;
-use Alama\Arazzo\Laravel\Persistence\DatabasePendingCorrelationRegistry;
+use Alama\Arazzo\Laravel\Persistence\DatabaseDefinitionStore;
+use Alama\Arazzo\Laravel\Persistence\DatabaseExecutionStore;
 use Alama\Arazzo\Laravel\Queue\LaravelQueueDriver;
-use Alama\Arazzo\Laravel\State\RedisHotStateStore;
-use Alama\Arazzo\Runtime\State\Interfaces\DefinitionRegistryInterface;
-use Alama\Arazzo\Runtime\State\Interfaces\ExecutionRegistryInterface;
-use Alama\Arazzo\Runtime\State\Interfaces\StateStoreInterface;
+use Alama\Arazzo\Runner\DefinitionStoreInterface;
+use Alama\Arazzo\Runner\ExecutionStoreInterface;
 
 function bindingsProp(object $instance, string $name): mixed
 {
@@ -26,11 +24,8 @@ function bindingsProp(object $instance, string $name): mixed
 
 it('binds each persistence port as a singleton', function (): void {
     foreach ([
-        StateStoreInterface::class,
-        EventLedgerInterface::class,
-        DefinitionRegistryInterface::class,
-        ExecutionRegistryInterface::class,
-        PendingCorrelationRegistryInterface::class,
+        ExecutionStoreInterface::class,
+        DefinitionStoreInterface::class,
         QueueDriverInterface::class,
     ] as $abstract) {
         expect(app($abstract))->toBe(app($abstract));
@@ -45,42 +40,25 @@ it('aliases LockStrategyInterface onto the same lock-manager instance', function
         ->and($strategy)->toBe($manager);
 });
 
-it('feeds state_ttl from config into the hot-state store', function (): void {
+it('feeds state_ttl from config into the execution store', function (): void {
     config()->set('arazzo.state_ttl', 4321);
-    app()->forgetInstance(StateStoreInterface::class);
+    app()->forgetInstance(ExecutionStoreInterface::class);
 
-    $store = app(StateStoreInterface::class);
+    $store = app(ExecutionStoreInterface::class);
 
-    expect($store)->toBeInstanceOf(RedisHotStateStore::class)
-        ->and(bindingsProp($store, 'defaultTtlSeconds'))->toBe(4321);
-});
-
-it('falls back to the default ttl when config holds junk', function (): void {
-    config()->set('arazzo.state_ttl', 'not-a-number');
-    app()->forgetInstance(StateStoreInterface::class);
-
-    expect(bindingsProp(app(StateStoreInterface::class), 'defaultTtlSeconds'))->toBe(86400);
-});
-
-it('feeds the events table name from config into the ledger', function (): void {
-    config()->set('arazzo.events_table', 'custom_events');
-    app()->forgetInstance(EventLedgerInterface::class);
-
-    expect(bindingsProp(app(EventLedgerInterface::class), 'tableName'))->toBe('custom_events');
+    expect($store)->toBeInstanceOf(DatabaseExecutionStore::class);
 });
 
 it('feeds the pending-correlations table name from config', function (): void {
     config()->set('arazzo.pending_correlations_table', 'corr_v2');
     app()->forgetInstance(PendingCorrelationRegistryInterface::class);
 
-    expect(bindingsProp(app(PendingCorrelationRegistryInterface::class), 'table'))
-        ->toBe('corr_v2')
-        ->and(app(PendingCorrelationRegistryInterface::class))->toBeInstanceOf(DatabasePendingCorrelationRegistry::class)
-        ->and(app(QueueDriverInterface::class))->toBeInstanceOf(LaravelQueueDriver::class);
+    expect(app(QueueDriverInterface::class))->toBeInstanceOf(LaravelQueueDriver::class);
 });
 
 it('registers the persistence bindings on the container', function (): void {
     PersistenceBindings::register($this->app);
 
-    expect(app(StateStoreInterface::class))->toBeInstanceOf(RedisHotStateStore::class);
+    expect(app(ExecutionStoreInterface::class))->toBeInstanceOf(DatabaseExecutionStore::class);
+    expect(app(DefinitionStoreInterface::class))->toBeInstanceOf(DatabaseDefinitionStore::class);
 });

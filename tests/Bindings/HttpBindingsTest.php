@@ -20,7 +20,7 @@ it('binds guzzle as the default psr-18 client and factories', function (): void 
 });
 
 it('bindIf keeps an application-provided client instead of the guzzle default', function (): void {
-    $custom = new class() implements ClientInterface
+    $custom = new class implements ClientInterface
     {
         public function sendRequest(RequestInterface $request): ResponseInterface
         {

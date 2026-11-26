@@ -10,8 +10,8 @@ use Illuminate\Support\Facades\Queue;
 it('dispatches to the queue', function (): void {
     Queue::fake();
 
-    $driver = new LaravelQueueDriver();
-    $driver->dispatch(new \stdClass());
+    $driver = new LaravelQueueDriver;
+    $driver->dispatch(new \stdClass);
 
     Queue::assertPushed(\stdClass::class);
 });

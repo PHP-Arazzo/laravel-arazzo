@@ -12,17 +12,16 @@ use Alama\Arazzo\Contracts\State\WorkflowContext;
 use Alama\Arazzo\Laravel\Queue\Jobs\RunExecuteStepJob;
 use Alama\Arazzo\Laravel\Queue\Jobs\RunResumeCorrelationJob;
 use Alama\Arazzo\Laravel\Queue\LaravelQueueDriver;
-use Alama\Arazzo\Runner\Async\ExecuteStepJob;
-use Alama\Arazzo\Runner\Async\ResumeCorrelationJob;
+use Alama\Arazzo\Runner\Data\ExecuteStepJob;
 use Illuminate\Support\Facades\Queue;
 
 it('wraps ExecuteStepJob in RunExecuteStepJob and pushes immediately when no delay is given', function (): void {
     Queue::fake();
 
-    $step = new Step('A', null, new StepTarget(), new StepFlow(), new StepIo());
+    $step = new Step('A', null, new StepTarget, new StepFlow, new StepIo);
     $job = new ExecuteStepJob($step, new WorkflowContext('def_1'));
 
-    (new LaravelQueueDriver())->dispatch($job);
+    (new LaravelQueueDriver)->dispatch($job);
 
     Queue::assertPushed(RunExecuteStepJob::class, fn (RunExecuteStepJob $pushed) => $pushed->inner->step->stepId === 'A');
 });
@@ -30,18 +29,18 @@ it('wraps ExecuteStepJob in RunExecuteStepJob and pushes immediately when no del
 it('wraps and dispatches via later() when a delay is given', function (): void {
     Queue::fake();
 
-    $step = new Step('A', null, new StepTarget(), new StepFlow(), new StepIo());
+    $step = new Step('A', null, new StepTarget, new StepFlow, new StepIo);
     $job = new ExecuteStepJob($step, new WorkflowContext('def_1'));
 
-    (new LaravelQueueDriver())->dispatch($job, 30);
+    (new LaravelQueueDriver)->dispatch($job, 30);
 
     Queue::assertPushed(RunExecuteStepJob::class);
 });
 
-it('wraps ResumeCorrelationJob in RunResumeCorrelationJob', function (): void {
+it('wraps a correlation resume in RunResumeCorrelationJob', function (): void {
     Queue::fake();
 
-    (new LaravelQueueDriver())->dispatch(new ResumeCorrelationJob('corr_1', ['x' => 1]));
+    (new LaravelQueueDriver)->dispatch(new RunResumeCorrelationJob('corr_1', ['x' => 1]));
 
-    Queue::assertPushed(RunResumeCorrelationJob::class, fn ($pushed) => $pushed->inner->correlationId === 'corr_1');
+    Queue::assertPushed(RunResumeCorrelationJob::class, fn ($pushed) => $pushed->correlationId === 'corr_1');
 });

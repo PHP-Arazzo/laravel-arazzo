@@ -41,7 +41,7 @@ class TestCase extends Orchestra
         }
 
         // Ensure Laravel's default event dispatcher is bound
-        if (!$this->app->bound(Dispatcher::class)) {
+        if (! $this->app->bound(Dispatcher::class)) {
             $this->app->singleton(Dispatcher::class, function ($app) {
                 return new LaravelDispatcher($app);
             });

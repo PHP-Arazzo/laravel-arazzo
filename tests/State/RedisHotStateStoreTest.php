@@ -10,7 +10,7 @@ use Illuminate\Redis\Connections\Connection;
 
 function makeRecordingRedisConnection(): Connection
 {
-    return new class() extends Connection
+    return new class extends Connection
     {
         /** @var list<array<string, mixed>> */
         public array $calls = [];
@@ -32,6 +32,11 @@ function makeRecordingRedisConnection(): Connection
             $this->calls[] = ['method' => 'get', 'key' => $key];
 
             return json_encode(['foo' => 'bar']);
+        }
+
+        public function del($key)
+        {
+            $this->calls[] = ['method' => 'del', 'key' => $key];
         }
 
         public function createSubscription($channels, \Closure $callback, $method = 'subscribe') {}
@@ -66,7 +71,7 @@ it('lets an explicit TTL override the default', function (): void {
 });
 
 it('returns null when the key is missing', function (): void {
-    $redisConnection = new class() extends Connection
+    $redisConnection = new class extends Connection
     {
         public function __construct() {}
 
@@ -110,3 +115,15 @@ it('returns null when the stored value is not a json object', function (mixed $s
     'empty string' => [''],
     'non-string payload' => [[['foo' => 'bar']]],
 ]);
+
+it('delete removes state from redis', function (): void {
+    $redisConnection = makeRecordingRedisConnection();
+    $factory = $this->createMock(RedisFactory::class);
+    $factory->method('connection')->willReturn($redisConnection);
+
+    $store = new RedisHotStateStore($factory);
+    $store->delete('exec_123');
+
+    expect($redisConnection->calls[0]['method'])->toBe('del');
+    expect($redisConnection->calls[0]['key'])->toBe('arazzo:state:exec_123');
+});
