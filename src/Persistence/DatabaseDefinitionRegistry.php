@@ -9,6 +9,7 @@ use Alama\Arazzo\Contracts\Spec\Enum\Format;
 use Alama\Arazzo\Contracts\Spec\RawDocument;
 use Alama\Arazzo\Document\Parser\Exceptions\ParserException;
 use Alama\Arazzo\Document\Parser\Parser;
+use Alama\Arazzo\Laravel\Support\Config;
 use Alama\Arazzo\Runtime\State\Exceptions\DefinitionHydrationException;
 use Alama\Arazzo\Runtime\State\Interfaces\DefinitionRegistryInterface;
 use Illuminate\Database\ConnectionInterface;
@@ -23,7 +24,7 @@ class DatabaseDefinitionRegistry implements DefinitionRegistryInterface
     public function __construct(
         private ConnectionInterface $db,
         private Parser $parser,
-        private string $tableName = 'arazzo_definitions',
+        private Config $config,
     ) {}
 
     public function register(ArazzoDocument $document): string
@@ -36,7 +37,7 @@ class DatabaseDefinitionRegistry implements DefinitionRegistryInterface
         $identity = $document->info->title;
         $contentHash = $this->hash($raw);
 
-        $existingId = $this->db->table($this->tableName)
+        $existingId = $this->db->table($this->config->definitionsTable())
             ->where('document_identity', $identity)
             ->where('content_hash', $contentHash)
             ->value('id');
@@ -47,7 +48,7 @@ class DatabaseDefinitionRegistry implements DefinitionRegistryInterface
 
         $id = (string) Str::ulid();
 
-        $this->db->table($this->tableName)->insertOrIgnore([
+        $this->db->table($this->config->definitionsTable())->insertOrIgnore([
             'id' => $id,
             'document_identity' => $identity,
             'content_hash' => $contentHash,
@@ -56,7 +57,7 @@ class DatabaseDefinitionRegistry implements DefinitionRegistryInterface
         ]);
 
         // A concurrent register() may have won the race; re-select rather than trust $id.
-        return $this->textColumn($this->db->table($this->tableName)
+        return $this->textColumn($this->db->table($this->config->definitionsTable())
             ->where('document_identity', $identity)
             ->where('content_hash', $contentHash)
             ->value('id'));
@@ -64,13 +65,13 @@ class DatabaseDefinitionRegistry implements DefinitionRegistryInterface
 
     public function get(string $definitionId): ?ArazzoDocument
     {
-        $row = $this->db->table($this->tableName)->where('id', $definitionId)->first();
+        $row = $this->db->table($this->config->definitionsTable())->where('id', $definitionId)->first();
         if ($row === null) {
             return null;
         }
 
         $decoded = json_decode($this->textColumn($row->raw_document), true);
-        if (!is_array($decoded)) {
+        if (! is_array($decoded)) {
             throw new DefinitionHydrationException("Definition '{$definitionId}' has unparseable raw_document JSON.");
         }
 
@@ -91,7 +92,7 @@ class DatabaseDefinitionRegistry implements DefinitionRegistryInterface
      */
     private function textColumn(mixed $value): string
     {
-        if (!is_scalar($value)) {
+        if (! is_scalar($value)) {
             throw new DefinitionHydrationException('Expected a scalar column value, got '.get_debug_type($value).'.');
         }
 
